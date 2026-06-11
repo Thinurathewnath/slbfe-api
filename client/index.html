@@ -381,8 +381,12 @@
             <input type="number" id="reg-age" placeholder="25" min="18" max="100" />
           </div>
           <div class="form-group">
-            <label>Profession</label>
-            <input type="text" id="reg-profession" placeholder="Software Engineer, Nurse..." />
+            <label>Role *</label>
+            <select id="reg-role">
+              <option value="citizen">Citizen / Job Seeker</option>
+              <option value="officer">Bureau Officer</option>
+              <option value="company">Foreign Company</option>
+            </select>
           </div>
         </div>
         <div class="form-group">
@@ -395,8 +399,8 @@
             <input type="email" id="reg-email" placeholder="you@email.com" />
           </div>
           <div class="form-group">
-            <label>Age *</label>
-            <input type="number" id="reg-age2" placeholder="25" min="18" max="100" style="display:none"/>
+            <label>Profession</label>
+            <input type="text" id="reg-profession" placeholder="Software Engineer" />
           </div>
         </div>
         <div class="form-group">
@@ -552,20 +556,21 @@ async function doRegister() {
   const pw = $('reg-password').value;
   if(pw !== $('reg-confirm').value){ alertBox('reg-alert','Passwords do not match.'); setBtn('btn-register',false); return; }
   const body = {
-    nid:        $('reg-nid').value.trim(),
-    name:       $('reg-name').value.trim(),
-    age:        parseInt($('reg-age').value),
-    address:    $('reg-address').value.trim(),
-    email:      $('reg-email').value.trim(),
-    role:       'citizen',
-    profession: $('reg-profession').value.trim()||undefined,
-    password:   pw
+    nid:         $('reg-nid').value.trim(),
+    name:        $('reg-name').value.trim(),
+    age:         parseInt($('reg-age').value),
+    address:     $('reg-address').value.trim(),
+    email:       $('reg-email').value.trim(),
+    role:        $('reg-role').value,
+    profession:  $('reg-profession').value.trim()||undefined,
+    affiliation: $('reg-affiliation').value.trim()||undefined,
+    password: pw
   };
   const {ok,data} = await api('POST','/citizens',body);
   setBtn('btn-register', false);
   if(!ok){ alertBox('reg-alert', data.error||(data.details&&data.details.join(', '))||'Registration failed.'); return; }
   state.token = data.data.token;
-  state.user  = { nid:data.data.nid, name:data.data.name, email:body.email, role:'citizen' };
+  state.user  = { nid:data.data.nid, name:data.data.name, email:body.email, role:data.data.role };
   showDashboard();
 }
 
