@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: slbfe-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node seed.js && node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        value: slbfe-production-secret-key-2024-change-this
+      - key: PORT
+        value: 3000
