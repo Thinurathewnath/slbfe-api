@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SLBFE — Sri Lanka Bureau of Foreign Employment Portal</title>
+  <meta name="description" content="Official SLBFE digital portal. Register, manage your foreign employment profile, track your location, and file complaints through our secure online system." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Tokens ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #0a0e1a;
+      --bg2:       #0f1629;
+      --surface:   rgba(255,255,255,0.04);
+      --surface2:  rgba(255,255,255,0.08);
+      --border:    rgba(255,255,255,0.10);
+      --primary:   #3b82f6;
+      --primary-d: #2563eb;
+      --accent:    #8b5cf6;
+      --success:   #10b981;
+      --warning:   #f59e0b;
+      --danger:    #ef4444;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --gold:      #f59e0b;
+      --r:         12px;
+      --shadow:    0 8px 32px rgba(0,0,0,0.4);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated Background ──────────────────────────────────── */
+    .bg-orbs {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15;
+      animation: drift 15s ease-in-out infinite alternate;
+    }
+    .orb1 { width:500px; height:500px; background:#3b82f6; top:-100px; left:-100px; animation-delay:0s; }
+    .orb2 { width:400px; height:400px; background:#8b5cf6; bottom:-100px; right:-100px; animation-delay:5s; }
+    .orb3 { width:300px; height:300px; background:#06b6d4; top:40%; left:40%; animation-delay:10s; }
+    @keyframes drift {
+      0%   { transform: translate(0,0) scale(1); }
+      100% { transform: translate(40px,40px) scale(1.1); }
+    }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    #app { position: relative; z-index: 1; min-height: 100vh; }
+
+    /* ── Navbar ───────────────────────────────────────────────── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(10,14,26,0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo {
+      display: flex; align-items: center; gap: .6rem;
+      font-size: 1.2rem; font-weight: 800; color: var(--text);
+    }
+    .logo span { font-size: 1.8rem; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .nav-user { font-size:.85rem; color: var(--muted); }
+    .nav-user strong { color: var(--text); }
+    .badge {
+      display: inline-block; padding: .15rem .5rem; border-radius: 20px;
+      font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
+    }
+    .badge-officer  { background: rgba(16,185,129,.2); color: #10b981; border: 1px solid rgba(16,185,129,.3); }
+    .badge-citizen  { background: rgba(59,130,246,.2); color: #3b82f6; border: 1px solid rgba(59,130,246,.3); }
+    .badge-company  { background: rgba(245,158,11,.2); color: #f59e0b; border: 1px solid rgba(245,158,11,.3); }
+
+    /* ── Buttons ──────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .6rem 1.2rem; border-radius: 8px; font-size: .85rem;
+      font-weight: 600; cursor: pointer; border: none; transition: all .2s;
+      text-decoration: none; white-space: nowrap;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-d); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(59,130,246,.4); }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: rgba(255,255,255,.12); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #059669; }
+    .btn-danger  { background: var(--danger);  color: #fff; }
+    .btn-danger:hover  { background: #dc2626; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: var(--primary); }
+    .btn-sm { padding: .4rem .8rem; font-size: .78rem; }
+    .btn-lg { padding: .9rem 2rem; font-size: 1rem; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+
+    /* ── Cards / Glass Panels ─────────────────────────────────── */
+    .glass {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+    }
+    .card { padding: 1.5rem; border-radius: var(--r); }
+    .card-header { margin-bottom: 1.25rem; }
+    .card-header h2 { font-size: 1.2rem; font-weight: 700; }
+    .card-header p  { font-size: .85rem; color: var(--muted); margin-top: .25rem; }
+
+    /* ── Forms ────────────────────────────────────────────────── */
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: .82rem; font-weight: 600; color: var(--muted); margin-bottom: .4rem; text-transform: uppercase; letter-spacing: .04em; }
+    input, select, textarea {
+      width: 100%; padding: .7rem 1rem;
+      background: rgba(255,255,255,.06); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: .9rem; font-family: inherit;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+    }
+    select option { background: #1e293b; }
+    textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media(max-width:600px){ .form-row { grid-template-columns: 1fr; } }
+
+    /* ── Alerts ───────────────────────────────────────────────── */
+    .alert {
+      padding: .75rem 1rem; border-radius: 8px; font-size: .85rem;
+      margin-bottom: 1rem; display: flex; align-items: flex-start; gap: .5rem;
+    }
+    .alert-error   { background: rgba(239,68,68,.12);  border: 1px solid rgba(239,68,68,.3);  color: #fca5a5; }
+    .alert-success { background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3); color: #6ee7b7; }
+    .alert-info    { background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.3); color: #93c5fd; }
+
+    /* ── Tables ───────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; border-radius: var(--r); }
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    th { padding: .75rem 1rem; text-align: left; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: rgba(255,255,255,.04); border-bottom: 1px solid var(--border); }
+    td { padding: .75rem 1rem; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── Status Chips ─────────────────────────────────────────── */
+    .chip {
+      display: inline-block; padding: .2rem .6rem; border-radius: 20px;
+      font-size: .72rem; font-weight: 600;
+    }
+    .chip-green   { background: rgba(16,185,129,.2);  color: #10b981; }
+    .chip-yellow  { background: rgba(245,158,11,.2);  color: #f59e0b; }
+    .chip-blue    { background: rgba(59,130,246,.2);  color: #3b82f6; }
+    .chip-red     { background: rgba(239,68,68,.2);   color: #ef4444; }
+    .chip-purple  { background: rgba(139,92,246,.2);  color: #8b5cf6; }
+
+    /* ── Pages ────────────────────────────────────────────────── */
+    .page { display: none; min-height: 100vh; }
+    .page.active { display: block; }
+
+    /* ── Landing ──────────────────────────────────────────────── */
+    #page-landing {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 100vh; text-align: center;
+      padding: 2rem;
+    }
+    #page-landing.active { display: flex; }
+    .hero-flag { font-size: 4rem; margin-bottom: 1rem; animation: bounceIn .6s ease; }
+    @keyframes bounceIn { 0%{transform:scale(.5);opacity:0} 80%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+    .hero-title { font-size: clamp(2rem,5vw,3.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 1rem; }
+    .hero-title span { background: linear-gradient(135deg,#3b82f6,#8b5cf6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .hero-sub { font-size: 1.1rem; color: var(--muted); max-width: 540px; margin-bottom: 2.5rem; line-height: 1.6; }
+    .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .hero-stats { display: flex; gap: 3rem; margin-top: 4rem; flex-wrap: wrap; justify-content: center; }
+    .stat { text-align: center; }
+    .stat-num { font-size: 2rem; font-weight: 800; color: var(--primary); }
+    .stat-lbl { font-size: .8rem; color: var(--muted); margin-top: .25rem; }
+    .features { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 1rem; margin-top: 3rem; width: 100%; max-width: 900px; }
+    .feat {
+      padding: 1.25rem; border-radius: var(--r); text-align: left;
+      background: var(--surface); border: 1px solid var(--border);
+      transition: transform .2s, border-color .2s;
+    }
+    .feat:hover { transform: translateY(-3px); border-color: var(--primary); }
+    .feat-icon { font-size: 1.8rem; margin-bottom: .75rem; }
+    .feat h3  { font-size: .95rem; font-weight: 700; margin-bottom: .3rem; }
+    .feat p   { font-size: .8rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── Auth Panel ───────────────────────────────────────────── */
+    #page-auth {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 2rem;
+    }
+    #page-auth.active { display: flex; }
+    .auth-box { width: 100%; max-width: 460px; }
+    .auth-tabs { display: flex; margin-bottom: 1.5rem; background: var(--surface); border-radius: 10px; padding: .25rem; }
+    .tab-btn {
+      flex: 1; padding: .6rem; border: none; background: transparent;
+      color: var(--muted); font-size: .88rem; font-weight: 600; cursor: pointer;
+      border-radius: 8px; transition: all .2s;
+    }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+
+    /* ── Dashboard ────────────────────────────────────────────── */
+    #page-dashboard { padding: 0; }
+    #page-dashboard.active { display: flex; flex-direction: column; }
+    .dash-layout { display: flex; min-height: calc(100vh - 65px); }
+    .sidebar {
+      width: 220px; padding: 1.5rem 1rem; flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      background: rgba(255,255,255,.02);
+    }
+    @media(max-width:768px){ .sidebar { display: none; } }
+    .sidebar h4 { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: .75rem; padding: 0 .5rem; }
+    .nav-item {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .6rem .75rem; border-radius: 8px; margin-bottom: .25rem;
+      font-size: .88rem; font-weight: 500; cursor: pointer;
+      color: var(--muted); transition: all .2s; border: none; background: transparent; width: 100%;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: rgba(59,130,246,.15); color: var(--primary); }
+    .nav-icon { font-size: 1.1rem; width: 1.5rem; text-align: center; }
+
+    .main-content { flex: 1; padding: 2rem; overflow-y: auto; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .section-header { margin-bottom: 1.75rem; }
+    .section-header h1 { font-size: 1.6rem; font-weight: 800; }
+    .section-header p  { color: var(--muted); margin-top: .25rem; }
+
+    /* ── Info Grid ────────────────────────────────────────────── */
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .info-card { padding: 1.25rem; border-radius: var(--r); border: 1px solid var(--border); background: var(--surface); }
+    .info-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: .3rem; }
+    .info-value { font-size: 1rem; font-weight: 600; }
+    .info-value.large { font-size: 2rem; color: var(--primary); }
+
+    /* ── Modal ────────────────────────────────────────────────── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #0f1629; border: 1px solid var(--border);
+      border-radius: 16px; padding: 2rem; width: 100%; max-width: 560px;
+      max-height: 90vh; overflow-y: auto;
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-header h2 { font-size: 1.2rem; font-weight: 700; }
+    .modal-close { background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; padding: .25rem; }
+    .modal-close:hover { color: var(--text); }
+
+    /* ── Misc Utilities ───────────────────────────────────────── */
+    .flex { display: flex; }
+    .flex-wrap { flex-wrap: wrap; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-1 { gap: .5rem; }
+    .gap-2 { gap: 1rem; }
+    .mt-1 { margin-top: .5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .mt-3 { margin-top: 1.5rem; }
+    .mb-1 { margin-bottom: .5rem; }
+    .mb-2 { margin-bottom: 1rem; }
+    .text-sm { font-size: .85rem; }
+    .text-muted { color: var(--muted); }
+    .text-right { text-align: right; }
+    .w-full { width: 100%; }
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.2); border-top-color: #fff;
+      border-radius: 50%; animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+    .qual-item {
+      padding: .75rem 1rem; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; margin-bottom: .5rem; display: flex; justify-content: space-between; align-items: center;
+    }
+    .location-card {
+      padding: 1rem; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; margin-bottom: .75rem;
+    }
+  </style>
+</head>
+<body>
+<div class="bg-orbs">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+
+<div id="app">
+
+  <!-- ── LANDING PAGE ──────────────────────────────────────── -->
+  <div id="page-landing" class="page active">
+    <div class="hero-flag">🇱🇰</div>
+    <h1 class="hero-title">Sri Lanka Bureau of<br/><span>Foreign Employment</span></h1>
+    <p class="hero-sub">Your trusted partner for overseas employment. Register, manage your profile, and stay connected — wherever in the world you are.</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary btn-lg" id="btn-get-started">🚀 Get Started</button>
+      <a href="/api-docs" target="_blank" class="btn btn-ghost btn-lg">📖 API Docs</a>
+    </div>
+    <div class="features">
+      <div class="feat"><div class="feat-icon">📋</div><h3>Free Registration</h3><p>Any citizen can register and create their professional profile online.</p></div>
+      <div class="feat"><div class="feat-icon">📄</div><h3>Document Upload</h3><p>Securely upload your CV, passport, and birth certificate.</p></div>
+      <div class="feat"><div class="feat-icon">🔍</div><h3>Job Matching</h3><p>Companies can find the right candidates based on your qualifications.</p></div>
+      <div class="feat"><div class="feat-icon">📍</div><h3>Location Tracking</h3><p>Update your whereabouts so family and SLBFE can reach you.</p></div>
+      <div class="feat"><div class="feat-icon">💬</div><h3>Complaint System</h3><p>Report issues to bureau officers and receive timely responses.</p></div>
+      <div class="feat"><div class="feat-icon">✅</div><h3>Verification</h3><p>Bureau officers verify your documents for credibility.</p></div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">2M+</div><div class="stat-lbl">Registered Members</div></div>
+      <div class="stat"><div class="stat-num">190+</div><div class="stat-lbl">Countries Covered</div></div>
+      <div class="stat"><div class="stat-num">50K+</div><div class="stat-lbl">Jobs Matched</div></div>
+    </div>
+  </div>
+
+  <!-- ── AUTH PAGE ─────────────────────────────────────────── -->
+  <div id="page-auth" class="page">
+    <div class="auth-box glass card">
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <span style="font-size:2.5rem">🇱🇰</span>
+        <h1 style="font-size:1.4rem;font-weight:800;margin-top:.5rem">SLBFE Portal</h1>
+        <p class="text-muted text-sm mt-1">Bureau of Foreign Employment</p>
+      </div>
+      <div class="auth-tabs">
+        <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Login</button>
+        <button class="tab-btn" id="tab-register" onclick="switchTab('register')">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="form-login">
+        <div id="login-alert"></div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="login-email" placeholder="your@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" />
+        </div>
+        <button class="btn btn-primary w-full btn-lg mt-2" id="btn-login" onclick="doLogin()">
+          Sign In
+        </button>
+        <div class="mt-3 text-sm text-muted" style="text-align:center">
+          Demo: <code>officer@slbfe.gov.lk</code> / <code>Officer@1234</code>
+        </div>
+        <button class="btn btn-ghost w-full mt-1 text-sm" onclick="showLanding()">← Back to Home</button>
+      </div>
+
+      <!-- Register Form -->
+      <div id="form-register" style="display:none">
+        <div id="reg-alert"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>National ID (NID) *</label>
+            <input type="text" id="reg-nid" placeholder="200012345678" />
+          </div>
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" id="reg-name" placeholder="Kamal Perera" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Age *</label>
+            <input type="number" id="reg-age" placeholder="25" min="18" max="100" />
+          </div>
+          <div class="form-group">
+            <label>Role *</label>
+            <select id="reg-role">
+              <option value="citizen">Citizen / Job Seeker</option>
+              <option value="officer">Bureau Officer</option>
+              <option value="company">Foreign Company</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Address *</label>
+          <input type="text" id="reg-address" placeholder="123 Galle Road, Colombo" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" id="reg-email" placeholder="you@email.com" />
+          </div>
+          <div class="form-group">
+            <label>Profession</label>
+            <input type="text" id="reg-profession" placeholder="Software Engineer" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Affiliation / Company</label>
+          <input type="text" id="reg-affiliation" placeholder="Company or institution name" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Password *</label>
+            <input type="password" id="reg-password" placeholder="Min 8 chars" />
+          </div>
+          <div class="form-group">
+            <label>Confirm Password *</label>
+            <input type="password" id="reg-confirm" placeholder="Repeat password" />
+          </div>
+        </div>
+        <button class="btn btn-primary w-full btn-lg mt-2" id="btn-register" onclick="doRegister()">
+          Create Account
+        </button>
+        <button class="btn btn-ghost w-full mt-1 text-sm" onclick="showLanding()">← Back to Home</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD PAGE ────────────────────────────────────── -->
+  <div id="page-dashboard" class="page">
+    <nav>
+      <div class="logo"><span>🇱🇰</span> SLBFE Portal</div>
+      <div class="nav-right">
+        <span class="nav-user">Signed in as <strong id="nav-username">—</strong></span>
+        <span id="nav-badge" class="badge">—</span>
+        <button class="btn btn-ghost btn-sm" onclick="doLogout()">Logout</button>
+      </div>
+    </nav>
+    <div class="dash-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <h4>Navigation</h4>
+        <div id="sidebar-nav"></div>
+      </aside>
+      <!-- Main -->
+      <main class="main-content" id="main-content">
+        <!-- Sections injected by JS -->
+      </main>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- ── MODAL ────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-box">
+    <div class="modal-header">
+      <h2 id="modal-title">Modal</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+const API = '/api';
+let state = { token: null, user: null };
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const show = id => { const el = $(id); if(el) el.style.display='block'; };
+const hide = id => { const el = $(id); if(el) el.style.display='none'; };
+const q = (sel, ctx=document) => ctx.querySelector(sel);
+const qq = (sel, ctx=document) => [...ctx.querySelectorAll(sel)];
+
+async function api(method, path, body, isForm=false) {
+  const opts = { method, headers: {} };
+  if(state.token) opts.headers['Authorization'] = `Bearer ${state.token}`;
+  if(body && !isForm) { opts.headers['Content-Type']='application/json'; opts.body=JSON.stringify(body); }
+  if(body && isForm)  { opts.body = body; }
+  const r = await fetch(API+path, opts);
+  const data = await r.json().catch(()=>({success:false,error:'Invalid response'}));
+  return { ok: r.ok, status: r.status, data };
+}
+
+function setPage(id) {
+  qq('.page').forEach(p=>p.classList.remove('active'));
+  const p = $(id);
+  if(p) p.classList.add('active');
+}
+
+function showLanding() { setPage('page-landing'); }
+function showAuth()    { setPage('page-auth'); switchTab('login'); }
+
+function switchTab(tab) {
+  $('tab-login').classList.toggle('active', tab==='login');
+  $('tab-register').classList.toggle('active', tab==='register');
+  $('form-login').style.display    = tab==='login'    ? 'block' : 'none';
+  $('form-register').style.display = tab==='register' ? 'block' : 'none';
+}
+
+function alertBox(containerId, msg, type='error') {
+  const el = $(containerId);
+  if(!el) return;
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  setTimeout(()=>{ el.innerHTML=''; }, 5000);
+}
+
+function chip(val) {
+  const map = {
+    pending:      'chip-yellow',
+    under_review: 'chip-blue',
+    resolved:     'chip-green',
+    closed:       'chip-purple',
+    true:         'chip-green',
+    false:        'chip-red',
+    1:            'chip-green',
+    0:            'chip-red',
+    citizen:      'chip-blue',
+    officer:      'chip-green',
+    company:      'chip-yellow'
+  };
+  const cls = map[String(val)] || 'chip-blue';
+  const labels = {
+    pending:'Pending', under_review:'Under Review', resolved:'Resolved', closed:'Closed',
+    true:'Verified', false:'Unverified', 1:'Verified', 0:'Unverified',
+    citizen:'Citizen', officer:'Officer', company:'Company'
+  };
+  return `<span class="chip ${cls}">${labels[String(val)] || val}</span>`;
+}
+
+function fmt(dt) { if(!dt) return '—'; return new Date(dt).toLocaleString(); }
+function setBtn(id, loading) {
+  const b = $(id); if(!b) return;
+  b.disabled = loading;
+  b.innerHTML = loading ? `<span class="spinner"></span> Please wait...` : b.dataset.label || b.innerHTML;
+}
+function saveLabel(id) { const b=$(id); if(b&&!b.dataset.label) b.dataset.label=b.innerHTML; }
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  saveLabel('btn-login'); setBtn('btn-login', true);
+  const email    = $('login-email').value.trim();
+  const password = $('login-password').value;
+  if(!email||!password){ alertBox('login-alert','Please fill in all fields.'); setBtn('btn-login',false); return; }
+  const {ok,data} = await api('POST','/auth/login',{email,password});
+  setBtn('btn-login', false);
+  if(!ok){ alertBox('login-alert', data.error||'Login failed.'); return; }
+  state.token = data.data.token;
+  state.user  = data.data.user;
+  showDashboard();
+}
+
+async function doRegister() {
+  saveLabel('btn-register'); setBtn('btn-register', true);
+  const pw = $('reg-password').value;
+  if(pw !== $('reg-confirm').value){ alertBox('reg-alert','Passwords do not match.'); setBtn('btn-register',false); return; }
+  const body = {
+    nid:         $('reg-nid').value.trim(),
+    name:        $('reg-name').value.trim(),
+    age:         parseInt($('reg-age').value),
+    address:     $('reg-address').value.trim(),
+    email:       $('reg-email').value.trim(),
+    role:        $('reg-role').value,
+    profession:  $('reg-profession').value.trim()||undefined,
+    affiliation: $('reg-affiliation').value.trim()||undefined,
+    password: pw
+  };
+  const {ok,data} = await api('POST','/citizens',body);
+  setBtn('btn-register', false);
+  if(!ok){ alertBox('reg-alert', data.error||(data.details&&data.details.join(', '))||'Registration failed.'); return; }
+  state.token = data.data.token;
+  state.user  = { nid:data.data.nid, name:data.data.name, email:body.email, role:data.data.role };
+  showDashboard();
+}
+
+function doLogout() {
+  state = { token: null, user: null };
+  showLanding();
+}
+
+// ── Dashboard Bootstrap ───────────────────────────────────────────────────────
+function showDashboard() {
+  setPage('page-dashboard');
+  $('nav-username').textContent = state.user.name;
+  const badge = $('nav-badge');
+  badge.textContent = state.user.role;
+  badge.className = `badge badge-${state.user.role}`;
+  buildSidebar();
+  buildSections();
+  activateSection(sections[0].id);
+}
+
+const sectionsByRole = {
+  citizen: [
+    { id:'profile',    icon:'👤', label:'My Profile' },
+    { id:'documents',  icon:'📄', label:'My Documents' },
+    { id:'location',   icon:'📍', label:'My Location' },
+    { id:'complaints', icon:'💬', label:'Complaints' }
+  ],
+  officer: [
+    { id:'overview',   icon:'📊', label:'Overview' },
+    { id:'find',       icon:'🔍', label:'Search Citizens' },
+    { id:'complaints', icon:'💬', label:'Complaints' }
+  ],
+  company: [
+    { id:'find',       icon:'🔍', label:'Find Candidates' },
+    { id:'profile',    icon:'👤', label:'My Profile' }
+  ]
+};
+
+let sections = [];
+function buildSidebar() {
+  sections = sectionsByRole[state.user.role] || sectionsByRole.citizen;
+  const nav = $('sidebar-nav');
+  nav.innerHTML = sections.map(s=>`
+    <button class="nav-item" id="nav-${s.id}" onclick="activateSection('${s.id}')">
+      <span class="nav-icon">${s.icon}</span>${s.label}
+    </button>`).join('');
+}
+
+function activateSection(id) {
+  qq('.section').forEach(s=>s.classList.remove('active'));
+  qq('.nav-item').forEach(n=>n.classList.remove('active'));
+  const sec = $('sec-'+id);
+  if(sec) sec.classList.add('active');
+  const ni = $('nav-'+id);
+  if(ni) ni.classList.add('active');
+  // Lazy-load data
+  const loaders = { profile:loadProfile, documents:loadDocuments, location:loadLocation, complaints:loadComplaints, find:()=>{}, overview:loadOverview };
+  if(loaders[id]) loaders[id]();
+}
+
+function buildSections() {
+  const mc = $('main-content');
+  const role = state.user.role;
+  let html = '';
+  if(role==='citizen'||role==='company') html += sectionProfile();
+  if(role==='citizen') html += sectionDocuments();
+  if(role==='citizen') html += sectionLocation();
+  if(role==='citizen'||role==='officer') html += sectionComplaints();
+  if(role==='officer') html += sectionOverview();
+  if(role==='officer'||role==='company') html += sectionFind();
+  mc.innerHTML = html;
+  attachDocUpload();
+  attachLocationForm();
+  attachComplaintForm();
+  attachSearchForm();
+}
+
+// ── Profile Section ───────────────────────────────────────────────────────────
+function sectionProfile() { return `
+  <div class="section" id="sec-profile">
+    <div class="section-header">
+      <h1>👤 My Profile</h1>
+      <p>View and update your personal information and qualifications</p>
+    </div>
+    <div id="profile-content"><div class="empty-state"><span class="spinner"></span><p class="mt-2">Loading...</p></div></div>
+  </div>`; }
+
+async function loadProfile() {
+  const {ok,data} = await api('GET',`/citizens/${state.user.nid}`);
+  if(!ok) { // officer endpoint; for self try /auth/me
+    const {ok:ok2,data:data2} = await api('GET','/auth/me');
+    if(!ok2) { $('profile-content').innerHTML='<div class="alert alert-error">Failed to load profile.</div>'; return; }
+    renderProfile(data2.data, false);
+    return;
+  }
+  renderProfile(data.data, true);
+}
+
+function renderProfile(u, full) { 
+  const qrows = (u.qualifications||[]).map(q=>`
+    <div class="qual-item">
+      <div>
+        <strong>${q.degree}</strong> in ${q.field}<br>
+        <span class="text-muted text-sm">${q.institution} — ${q.year}</span>
+      </div>
+    </div>`).join('') || '<p class="text-muted text-sm">No qualifications added yet.</p>';
+
+  $('profile-content').innerHTML = `
+    <div class="info-grid">
+      <div class="info-card glass"><div class="info-label">National ID</div><div class="info-value">${u.nid}</div></div>
+      <div class="info-card glass"><div class="info-label">Full Name</div><div class="info-value">${u.name}</div></div>
+      <div class="info-card glass"><div class="info-label">Age</div><div class="info-value">${u.age}</div></div>
+      <div class="info-card glass"><div class="info-label">Role</div><div class="info-value">${chip(u.role)}</div></div>
+      <div class="info-card glass"><div class="info-label">Profession</div><div class="info-value">${u.profession||'—'}</div></div>
+      <div class="info-card glass"><div class="info-label">Verified</div><div class="info-value">${chip(u.is_verified)}</div></div>
+      <div class="info-card glass" style="grid-column:1/-1"><div class="info-label">Address</div><div class="info-value">${u.address}</div></div>
+    </div>
+    <div class="glass card mt-2">
+      <div class="card-header flex justify-between items-center">
+        <div><h2>📚 Qualifications</h2><p>Academic and professional certifications</p></div>
+        <button class="btn btn-primary btn-sm" onclick="openQualModal()">+ Add / Update</button>
+      </div>
+      <div id="qual-list">${qrows}</div>
+    </div>
+    ${full&&u.contacts&&u.contacts.length? `
+    <div class="glass card mt-2">
+      <div class="card-header"><h2>📞 Emergency Contacts</h2></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Name</th><th>Relationship</th><th>Phone</th><th>Email</th></tr></thead>
+        <tbody>${u.contacts.map(c=>`<tr><td>${c.name}</td><td>${c.relationship}</td><td>${c.phone}</td><td>${c.email||'—'}</td></tr>`).join('')}</tbody></table>
+      </div>
+    </div>` : ''}
+  `;
+}
+
+function openQualModal() {
+  openModal('Update Qualifications',`
+    <p class="text-muted text-sm mb-2">Enter all your qualifications. This will replace existing records.</p>
+    <div id="qual-entries"></div>
+    <button class="btn btn-ghost btn-sm mb-2" onclick="addQualEntry()">+ Add Qualification</button>
+    <hr class="divider"/>
+    <div id="qual-modal-alert"></div>
+    <button class="btn btn-primary w-full" onclick="saveQualifications()">💾 Save Qualifications</button>
+  `);
+  addQualEntry();
+}
+
+function addQualEntry() {
+  const container = $('qual-entries');
+  const div = document.createElement('div');
+  div.className = 'glass card mb-1';
+  div.style.padding = '.75rem';
+  div.innerHTML = `
+    <div class="form-row">
+      <div class="form-group mb-1"><label>Degree</label><input type="text" class="q-degree" placeholder="BSc, Diploma..."/></div>
+      <div class="form-group mb-1"><label>Field</label><input type="text" class="q-field" placeholder="Computer Science"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group mb-1"><label>Institution</label><input type="text" class="q-inst" placeholder="University of..."/></div>
+      <div class="form-group mb-1"><label>Year</label><input type="number" class="q-year" placeholder="2020" min="1950" max="2030"/></div>
+    </div>`;
+  container.appendChild(div);
+}
+
+async function saveQualifications() {
+  const entries = qq('#qual-entries .glass');
+  const qualifications = entries.map(e=>({
+    degree:      q('.q-degree',e).value.trim(),
+    institution: q('.q-inst',e).value.trim(),
+    field:       q('.q-field',e).value.trim(),
+    year:        parseInt(q('.q-year',e).value)
+  })).filter(q=>q.degree&&q.institution&&q.field&&q.year);
+  if(!qualifications.length){ alertBox('qual-modal-alert','Please add at least one qualification.'); return; }
+  const {ok,data} = await api('PUT',`/citizens/${state.user.nid}`,{qualifications});
+  if(!ok){ alertBox('qual-modal-alert',data.error||'Failed to save.'); return; }
+  closeModal();
+  loadProfile();
+}
+
+// ── Documents Section ─────────────────────────────────────────────────────────
+function sectionDocuments() { return `
+  <div class="section" id="sec-documents">
+    <div class="section-header"><h1>📄 My Documents</h1><p>Upload your birth certificate, CV, and passport copies</p></div>
+    <div class="glass card mb-2">
+      <div class="card-header"><h2>Upload New Document</h2></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Document Type</label>
+          <select id="doc-type">
+            <option value="cv">CV / Resume</option>
+            <option value="passport">Passport Copy</option>
+            <option value="birth_cert">Birth Certificate</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>File (PDF, JPG, PNG — max 5MB)</label>
+          <input type="file" id="doc-file" accept=".pdf,.jpg,.jpeg,.png" />
+        </div>
+      </div>
+      <div id="doc-upload-alert"></div>
+      <button class="btn btn-primary btn-sm" id="btn-upload-doc" onclick="uploadDocument()">📤 Upload Document</button>
+    </div>
+    <div class="glass card" id="docs-list-container">
+      <div class="card-header"><h2>Uploaded Documents</h2></div>
+      <div id="docs-list"><div class="empty-state"><span class="spinner"></span></div></div>
+    </div>
+  </div>`; }
+
+function attachDocUpload() {}
+
+async function uploadDocument() {
+  const file    = $('doc-file').files[0];
+  const docType = $('doc-type').value;
+  if(!file){ alertBox('doc-upload-alert','Please select a file.'); return; }
+  saveLabel('btn-upload-doc'); setBtn('btn-upload-doc',true);
+  const form = new FormData();
+  form.append('file', file);
+  form.append('type', docType);
+  const {ok,data} = await api('POST',`/citizens/${state.user.nid}/documents`, form, true);
+  setBtn('btn-upload-doc',false);
+  if(!ok){ alertBox('doc-upload-alert',data.error||'Upload failed.'); return; }
+  alertBox('doc-upload-alert','Document uploaded successfully!','success');
+  $('doc-file').value='';
+  loadDocuments();
+}
+
+async function loadDocuments() {
+  const {ok,data} = await api('GET',`/citizens/${state.user.nid}/documents`);
+  const container = $('docs-list');
+  if(!container) return;
+  if(!ok){ container.innerHTML='<div class="alert alert-error">Failed to load documents.</div>'; return; }
+  if(!data.data.length){ container.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>No documents uploaded yet.</p></div>'; return; }
+  const typeIcons = { cv:'📝', passport:'🛂', birth_cert:'📜', other:'📎' };
+  container.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Type</th><th>File Name</th><th>Size</th><th>Uploaded</th><th>Status</th></tr></thead>
+        <tbody>${data.data.map(d=>`
+          <tr>
+            <td>${typeIcons[d.type]||'📎'} ${d.type.replace('_',' ')}</td>
+            <td>${d.original_name}</td>
+            <td>${(d.file_size/1024).toFixed(1)} KB</td>
+            <td>${fmt(d.uploaded_at)}</td>
+            <td>${chip(d.is_verified)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ── Location Section ──────────────────────────────────────────────────────────
+function sectionLocation() { return `
+  <div class="section" id="sec-location">
+    <div class="section-header"><h1>📍 My Location</h1><p>Update your current location whenever you arrive at your employer</p></div>
+    <div class="glass card mb-2">
+      <div class="card-header"><h2>Update Current Location</h2></div>
+      <div class="form-row">
+        <div class="form-group"><label>Country *</label><input id="loc-country" placeholder="Saudi Arabia" /></div>
+        <div class="form-group"><label>City *</label><input id="loc-city" placeholder="Riyadh" /></div>
+      </div>
+      <div class="form-group"><label>Employer / Company</label><input id="loc-employer" placeholder="ABC Company Ltd." /></div>
+      <div class="form-row">
+        <div class="form-group"><label>Latitude</label><input id="loc-lat" type="number" placeholder="24.7136" /></div>
+        <div class="form-group"><label>Longitude</label><input id="loc-lng" type="number" placeholder="46.6753" /></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="loc-notes" placeholder="Additional details about your situation..."></textarea></div>
+      <div id="loc-alert"></div>
+      <button class="btn btn-primary btn-sm" id="btn-loc-update" onclick="updateLocation()">📍 Update Location</button>
+    </div>
+    <div class="glass card" id="loc-history-card">
+      <div class="card-header"><h2>Location History</h2></div>
+      <div id="loc-history"><div class="empty-state"><span class="spinner"></span></div></div>
+    </div>
+  </div>`; }
+
+function attachLocationForm() {}
+
+async function updateLocation() {
+  const body = {
+    country:  $('loc-country').value.trim(),
+    city:     $('loc-city').value.trim(),
+    employer: $('loc-employer').value.trim()||undefined,
+    latitude: parseFloat($('loc-lat').value)||undefined,
+    longitude:parseFloat($('loc-lng').value)||undefined,
+    notes:    $('loc-notes').value.trim()||undefined
+  };
+  if(!body.country||!body.city){ alertBox('loc-alert','Country and city are required.'); return; }
+  saveLabel('btn-loc-update'); setBtn('btn-loc-update',true);
+  const {ok,data} = await api('POST',`/citizens/${state.user.nid}/location`,body);
+  setBtn('btn-loc-update',false);
+  if(!ok){ alertBox('loc-alert',data.error||'Failed to update location.'); return; }
+  alertBox('loc-alert','Location updated successfully!','success');
+  loadLocation();
+}
+
+async function loadLocation() {
+  // Citizens can only see their own via profile; location history is officer-only
+  // We'll show a message instead
+  const hist = $('loc-history');
+  if(hist) hist.innerHTML='<div class="empty-state text-sm"><p class="text-muted">Location history is viewable by bureau officers.</p></div>';
+}
+
+// ── Complaints Section ────────────────────────────────────────────────────────
+function sectionComplaints() { return `
+  <div class="section" id="sec-complaints">
+    <div class="section-header"><h1>💬 Complaints</h1>
+      <p>${state.user&&state.user.role==='officer'?'Review and respond to citizen complaints':'Submit and track your complaints'}</p>
+    </div>
+    <div id="complaints-new-form">
+      ${state.user&&state.user.role==='citizen'?`
+      <div class="glass card mb-2">
+        <div class="card-header"><h2>Submit a Complaint</h2></div>
+        <div class="form-group"><label>Category</label>
+          <select id="cmp-cat"><option value="general">General</option><option value="salary">Salary Issue</option><option value="welfare">Welfare / Safety</option><option value="abuse">Abuse</option><option value="accommodation">Accommodation</option></select>
+        </div>
+        <div class="form-group"><label>Subject *</label><input id="cmp-subject" placeholder="Brief description of the issue" /></div>
+        <div class="form-group"><label>Description *</label><textarea id="cmp-desc" placeholder="Provide full details of your complaint..." style="min-height:120px"></textarea></div>
+        <div id="cmp-alert"></div>
+        <button class="btn btn-primary btn-sm" id="btn-submit-cmp" onclick="submitComplaint()">📤 Submit Complaint</button>
+      </div>`:'' }
+    </div>
+    <div class="glass card">
+      <div class="card-header flex justify-between items-center">
+        <div><h2>All Complaints</h2></div>
+        ${state.user&&state.user.role==='officer'?`
+        <div class="flex gap-1">
+          <select id="filter-status" onchange="loadComplaints()" style="padding:.4rem .6rem;font-size:.8rem">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="under_review">Under Review</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>`:''}
+      </div>
+      <div id="complaints-list"><div class="empty-state"><span class="spinner"></span></div></div>
+    </div>
+  </div>`; }
+
+function attachComplaintForm() {}
+
+async function submitComplaint() {
+  const body = {
+    category:    $('cmp-cat')?.value,
+    subject:     $('cmp-subject')?.value.trim(),
+    description: $('cmp-desc')?.value.trim()
+  };
+  if(!body.subject||!body.description){ alertBox('cmp-alert','Please fill in all required fields.'); return; }
+  saveLabel('btn-submit-cmp'); setBtn('btn-submit-cmp',true);
+  const {ok,data} = await api('POST','/complaints',body);
+  setBtn('btn-submit-cmp',false);
+  if(!ok){ alertBox('cmp-alert',data.error||'Failed to submit complaint.'); return; }
+  alertBox('cmp-alert','Complaint submitted successfully!','success');
+  if($('cmp-subject')) $('cmp-subject').value='';
+  if($('cmp-desc'))    $('cmp-desc').value='';
+  loadComplaints();
+}
+
+async function loadComplaints() {
+  const container = $('complaints-list');
+  if(!container) return;
+  const role = state.user.role;
+  let res;
+  if(role==='officer') {
+    const status = $('filter-status')?.value||'';
+    res = await api('GET',`/complaints${status?`?status=${status}`:''}`);
+  } else {
+    res = await api('GET','/complaints/mine');
+  }
+  const {ok,data} = res;
+  if(!ok){ container.innerHTML='<div class="alert alert-error">Failed to load complaints.</div>'; return; }
+  const list = data.data||[];
+  if(!list.length){ container.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>No complaints found.</p></div>'; return; }
+  container.innerHTML = list.map(c=>`
+    <div class="location-card">
+      <div class="flex justify-between items-center mb-1">
+        <div>
+          <strong>${c.subject}</strong>
+          <span class="chip chip-purple text-sm" style="margin-left:.5rem">${c.category}</span>
+        </div>
+        <div class="flex gap-1 items-center">
+          ${chip(c.status)}
+          ${role==='officer'?`<button class="btn btn-sm btn-ghost" onclick="openReplyModal(${c.id},'${escHtml(c.subject)}')">Reply</button>`:''}
+        </div>
+      </div>
+      <p class="text-sm text-muted">${c.description}</p>
+      ${c.officer_reply?`<div class="alert alert-info mt-1 text-sm"><strong>Officer Reply:</strong> ${c.officer_reply}</div>`:''}
+      <div class="text-sm text-muted mt-1">Submitted: ${fmt(c.created_at)}${c.complainant_name?` — by ${c.complainant_name}`:''}</div>
+    </div>`).join('');
+}
+
+function escHtml(s) { return String(s).replace(/'/g,"\\'"); }
+
+function openReplyModal(id, subject) {
+  openModal(`Reply to Complaint`, `
+    <p class="text-sm text-muted mb-2">Complaint: <strong>${subject}</strong></p>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="reply-status">
+        <option value="under_review">Under Review</option>
+        <option value="resolved">Resolved</option>
+        <option value="closed">Closed</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Your Reply *</label>
+      <textarea id="reply-text" style="min-height:120px" placeholder="Write your official response..."></textarea>
+    </div>
+    <div id="reply-alert"></div>
+    <button class="btn btn-primary w-full" onclick="sendReply(${id})">📤 Send Reply</button>
+  `);
+}
+
+async function sendReply(id) {
+  const reply  = $('reply-text')?.value.trim();
+  const status = $('reply-status')?.value;
+  if(!reply){ alertBox('reply-alert','Please write a reply.'); return; }
+  const {ok,data} = await api('PUT',`/complaints/${id}/reply`,{reply,status});
+  if(!ok){ alertBox('reply-alert',data.error||'Failed to send reply.'); return; }
+  closeModal();
+  loadComplaints();
+}
+
+// ── Officer Overview ──────────────────────────────────────────────────────────
+function sectionOverview() { return `
+  <div class="section" id="sec-overview">
+    <div class="section-header"><h1>📊 Officer Overview</h1><p>Summary of the SLBFE system</p></div>
+    <div id="overview-content"><div class="empty-state"><span class="spinner"></span></div></div>
+  </div>`; }
+
+async function loadOverview() {
+  // Load a few metrics via the search endpoints
+  const {ok, data} = await api('GET', '/citizens/search?limit=1');
+  const {ok:ok2, data:data2} = await api('GET', '/complaints?limit=1');
+  const total   = ok  ? data.pagination.total  : '—';
+  const comps   = ok2 ? data2.pagination.total : '—';
+  $('overview-content').innerHTML = `
+    <div class="info-grid">
+      <div class="info-card glass"><div class="info-label">Registered Citizens</div><div class="info-value large">${total}</div></div>
+      <div class="info-card glass"><div class="info-label">Total Complaints</div><div class="info-value large">${comps}</div></div>
+      <div class="info-card glass"><div class="info-label">Logged In As</div><div class="info-value">${state.user.name}</div></div>
+      <div class="info-card glass"><div class="info-label">Role</div><div class="info-value">${chip('officer')}</div></div>
+    </div>
+    <div class="glass card mt-2">
+      <div class="card-header"><h2>🔍 Quick Citizen Lookup</h2></div>
+      <div class="flex gap-2">
+        <input id="officer-nid" placeholder="Enter citizen NID..." style="flex:1" />
+        <button class="btn btn-primary btn-sm" onclick="officerLookup()">Search</button>
+      </div>
+      <div id="officer-lookup-result" class="mt-2"></div>
+    </div>`;
+}
+
+async function officerLookup() {
+  const nid = $('officer-nid')?.value.trim();
+  if(!nid) return;
+  const res = $('officer-lookup-result');
+  res.innerHTML = '<span class="spinner"></span>';
+  const {ok,data} = await api('GET',`/citizens/${nid}`);
+  if(!ok){ res.innerHTML=`<div class="alert alert-error">${data.error||'Not found.'}</div>`; return; }
+  const u = data.data;
+  res.innerHTML = `
+    <div class="glass card">
+      <div class="flex justify-between items-center mb-2">
+        <div><strong>${u.name}</strong> &nbsp;${chip(u.role)} &nbsp;${chip(u.is_verified)}</div>
+        <button class="btn btn-sm btn-${u.is_verified?'ghost':'success'}" onclick="toggleVerify('${u.nid}',${!u.is_verified})">
+          ${u.is_verified?'Unverify':'✅ Verify'}
+        </button>
+      </div>
+      <div class="info-grid">
+        <div class="info-card"><div class="info-label">NID</div><div class="info-value">${u.nid}</div></div>
+        <div class="info-card"><div class="info-label">Email</div><div class="info-value">${u.email}</div></div>
+        <div class="info-card"><div class="info-label">Age</div><div class="info-value">${u.age}</div></div>
+        <div class="info-card"><div class="info-label">Profession</div><div class="info-value">${u.profession||'—'}</div></div>
+      </div>
+      ${u.qualifications&&u.qualifications.length?`
+      <h4 class="mt-2 mb-1 text-sm" style="color:var(--muted)">QUALIFICATIONS</h4>
+      ${u.qualifications.map(q=>`<div class="qual-item"><div><strong>${q.degree}</strong> in ${q.field} — ${q.institution} (${q.year})</div></div>`).join('')}`:'' }
+      ${u.current_location?`<div class="alert alert-info mt-2 text-sm">📍 Currently in: <strong>${u.current_location.city}, ${u.current_location.country}</strong> at ${u.current_location.employer||'unknown employer'}</div>`:''}
+      <div class="flex gap-1 mt-2">
+        <button class="btn btn-sm btn-ghost" onclick="viewContacts('${u.nid}')">📞 View Contacts</button>
+        <button class="btn btn-sm btn-danger" onclick="deactivate('${u.nid}','${escHtml(u.name)}')">🗑 Deactivate</button>
+      </div>
+    </div>`;
+}
+
+async function toggleVerify(nid, verified) {
+  const {ok,data} = await api('PUT',`/citizens/${nid}`,{is_verified:verified});
+  if(!ok){ alert(data.error); return; }
+  officerLookup();
+}
+
+async function viewContacts(nid) {
+  const {ok,data} = await api('GET',`/citizens/${nid}/contacts`);
+  if(!ok){ alert(data.error); return; }
+  const contacts = data.data.contacts;
+  openModal(`Contacts — ${data.data.citizen_name}`, contacts.length?`
+    <div class="table-wrap">
+      <table><thead><tr><th>Name</th><th>Relationship</th><th>Phone</th><th>Email</th></tr></thead>
+      <tbody>${contacts.map(c=>`<tr><td>${c.name}</td><td>${c.relationship}</td><td>${c.phone}</td><td>${c.email||'—'}</td></tr>`).join('')}</tbody></table>
+    </div>`:'<div class="empty-state"><p>No contacts on file.</p></div>');
+}
+
+async function deactivate(nid, name) {
+  if(!confirm(`Deactivate account for ${name} (NID: ${nid})?`)) return;
+  const {ok,data} = await api('DELETE',`/citizens/${nid}`);
+  if(!ok){ alert(data.error); return; }
+  alert(data.message);
+  $('officer-lookup-result').innerHTML='';
+  $('officer-nid').value='';
+}
+
+// ── Candidate Search Section ──────────────────────────────────────────────────
+function sectionFind() { return `
+  <div class="section" id="sec-find">
+    <div class="section-header">
+      <h1>🔍 ${state.user&&state.user.role==='company'?'Find Candidates':'Search Citizens'}</h1>
+      <p>Search for workers based on qualifications and profession</p>
+    </div>
+    <div class="glass card mb-2">
+      <div class="form-row">
+        <div class="form-group"><label>Field of Study</label><input id="s-field" placeholder="e.g. Engineering, Nursing" /></div>
+        <div class="form-group"><label>Degree</label><input id="s-degree" placeholder="e.g. BSc, Diploma" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Institution</label><input id="s-inst" placeholder="e.g. University of Moratuwa" /></div>
+        <div class="form-group"><label>Profession</label><input id="s-prof" placeholder="e.g. Software Engineer" /></div>
+      </div>
+      <button class="btn btn-primary btn-sm" id="btn-search" onclick="doSearch()">🔍 Search</button>
+    </div>
+    <div class="glass card">
+      <div class="card-header" id="search-header"><h2>Results</h2></div>
+      <div id="search-results"><div class="empty-state"><div class="icon">🔍</div><p>Enter search criteria above to find candidates.</p></div></div>
+    </div>
+  </div>`; }
+
+function attachSearchForm() {}
+
+async function doSearch() {
+  saveLabel('btn-search'); setBtn('btn-search',true);
+  const params = new URLSearchParams();
+  const f = $('s-field')?.value.trim();  if(f) params.append('field',f);
+  const d = $('s-degree')?.value.trim(); if(d) params.append('degree',d);
+  const i = $('s-inst')?.value.trim();   if(i) params.append('institution',i);
+  const p = $('s-prof')?.value.trim();   if(p) params.append('profession',p);
+  params.append('limit','20');
+  const {ok,data} = await api('GET',`/citizens/search?${params}`);
+  setBtn('btn-search',false);
+  const container = $('search-results');
+  const header    = $('search-header');
+  if(!ok){ container.innerHTML=`<div class="alert alert-error">${data.error||'Search failed.'}</div>`; return; }
+  const results = data.data;
+  if(header) header.innerHTML=`<h2>Results <span class="chip chip-blue">${data.pagination.total} found</span></h2>`;
+  if(!results.length){ container.innerHTML='<div class="empty-state"><div class="icon">🔍</div><p>No candidates match your search.</p></div>'; return; }
+  container.innerHTML = results.map(c=>`
+    <div class="location-card">
+      <div class="flex justify-between items-center mb-1">
+        <div>
+          <strong>${c.name}</strong> &nbsp;${chip(c.is_verified)}
+          <span class="text-sm text-muted" style="margin-left:.5rem">${c.profession||''}</span>
+        </div>
+        <span class="text-sm text-muted">NID: ${c.nid}</span>
+      </div>
+      <div class="text-sm text-muted mb-1">${c.email}</div>
+      ${c.qualifications&&c.qualifications.length?`
+      <div class="flex flex-wrap gap-1">
+        ${c.qualifications.map(q=>`<span class="chip chip-blue">${q.degree} in ${q.field} (${q.year})</span>`).join('')}
+      </div>`:''}
+    </div>`).join('');
+}
+
+// ── Modal Helpers ─────────────────────────────────────────────────────────────
+function openModal(title, body) {
+  $('modal-title').textContent = title;
+  $('modal-body').innerHTML = body;
+  $('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if(e && e.target !== $('modal-overlay')) return;
+  $('modal-overlay').classList.remove('open');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+$('btn-get-started').addEventListener('click', showAuth);
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+</script>
+</body>
+</html>
